@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{app.title}">Personal Todo App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 24px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .owner {
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .locale-switch a {
+            margin-left: 8px;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            background: #e8f5e9;
+            color: #1b5e20;
+        }
+
+        .field-error {
+            color: #b71c1c;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        form {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .form-row {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: inline-block;
+            min-width: 120px;
+        }
+
+        input, select, button {
+            padding: 6px 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #f5f5f5;
+        }
+
+        .actions a {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="topbar">
+        <h1 th:text="#{app.title}">Personal Todo App</h1>
+        <div class="locale-switch">
+            <a th:href="@{/todos(lang='vi')}" th:text="#{language.vi}">Tiếng Việt</a>
+            <a th:href="@{/todos(lang='en')}" th:text="#{language.en}">English</a>
+        </div>
+    </div>
+
+    <p class="owner" th:text="#{owner.listOf(${ownerName})}">Danh sách của: Chủ sở hữu</p>
+
+    <div class="message" th:if="${messageKey}" th:text="#{${messageKey}}"></div>
+
+    <form th:action="@{/todos/save}" th:object="${todo}" method="post">
+        <input type="hidden" th:field="*{id}">
+
+        <div class="form-row">
+            <label for="content" th:text="#{todo.form.content}">Nội dung</label>
+            <input id="content" type="text" th:field="*{content}" th:placeholder="#{todo.form.content.placeholder}">
+            <div class="field-error" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></div>
+        </div>
+
+        <div class="form-row">
+            <label for="dueDate" th:text="#{todo.form.dueDate}">Hạn chót</label>
+            <input id="dueDate" type="date" th:field="*{dueDate}">
+            <div class="field-error" th:if="${#fields.hasErrors('dueDate')}" th:errors="*{dueDate}"></div>
+        </div>
+
+        <div class="form-row">
+            <label for="status" th:text="#{todo.form.status}">Trạng thái</label>
+            <select id="status" th:field="*{status}">
+                <option th:each="st : ${statuses}" th:value="${st}" th:text="#{${'todo.status.' + st.name()}}"></option>
+            </select>
+        </div>
+
+        <div class="form-row">
+            <label for="priority" th:text="#{todo.form.priority}">Ưu tiên</label>
+            <select id="priority" th:field="*{priority}">
+                <option th:each="pr : ${priorities}" th:value="${pr}" th:text="#{${'todo.priority.' + pr.name()}}"></option>
+            </select>
+        </div>
+
+        <button type="submit" th:text="${todo.id != null ? #messages.msg('todo.button.update') : #messages.msg('todo.button.add')}">
+            Thêm Task
+        </button>
+    </form>
+
+    <table>
+        <thead>
+        <tr>
+            <th th:text="#{todo.table.id}">ID</th>
+            <th th:text="#{todo.table.content}">Nội dung</th>
+            <th th:text="#{todo.table.dueDate}">Hạn chót</th>
+            <th th:text="#{todo.table.status}">Trạng thái</th>
+            <th th:text="#{todo.table.priority}">Ưu tiên</th>
+            <th th:text="#{todo.table.actions}">Hành động</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(todos)}">
+            <td colspan="6" th:text="#{todo.table.empty}">Chưa có task nào.</td>
+        </tr>
+        <tr th:each="todoItem : ${todos}">
+            <td th:text="${todoItem.id}"></td>
+            <td th:text="${todoItem.content}"></td>
+            <td th:text="${todoItem.dueDate}"></td>
+            <td th:text="#{${'todo.status.' + todoItem.status.name()}}"></td>
+            <td th:text="#{${'todo.priority.' + todoItem.priority.name()}}"></td>
+            <td class="actions">
+                <a th:href="@{/todos/edit/{id}(id=${todoItem.id})}" th:text="#{todo.button.edit}">Sửa</a>
+                <a th:href="@{/todos/delete/{id}(id=${todoItem.id})}"
+                   th:onclick="|return confirm('${#messages.msg('todo.confirm.delete')}')|"
+                   th:text="#{todo.button.delete}">Xóa</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
